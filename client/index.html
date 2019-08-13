@@ -32,7 +32,7 @@
 
         setTimeout(async () => {
           try {
-            const usr = await manager.signinPopup();
+            const usr = await manager.signinRedirect();
             await userLoggedIn(usr);
           } catch (error) {
             console.log(error);
@@ -71,11 +71,7 @@
       }
 
       async function logout() {
-        try {
-          const result = await manager.signoutPopup();
-        } finally {
-          document.location.reload(true);
-        }
+        await manager.signoutRedirect({state:'some data'});
       }
     })();
   </script>

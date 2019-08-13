@@ -67,11 +67,6 @@ namespace IdentityServer
                 throw new Exception("need to configure key material");
             }
 
-            var cors = new DefaultCorsPolicyService(new LoggerFactory().CreateLogger<DefaultCorsPolicyService>())
-            {
-                AllowAll = true
-            };
-            services.AddSingleton<ICorsPolicyService>(cors);
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
         }
 
