@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace api
 {
@@ -18,13 +18,17 @@ namespace api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
+            services.AddControllers();
 
-            services
-                .AddMvcCore()
-                .AddJsonFormatters()
-                .AddAuthorization()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddCors(setup =>
+            {
+                setup.AddDefaultPolicy(policy =>
+                {
+                    policy.AllowAnyHeader();
+                    policy.AllowAnyMethod();
+                    policy.WithOrigins( new [] { "http://localhost:8080"} );
+                });
+            });
 
             services.AddAuthentication("Bearer")
                 .AddJwtBearer("Bearer", options =>
@@ -33,21 +37,12 @@ namespace api
                     options.RequireHttpsMetadata = false;
                     options.Audience = "api";
                 });
-
-            services.AddCors(setup =>
-            {
-                setup.AddDefaultPolicy(policy =>
-                {
-                    policy
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowAnyOrigin();
-                });
-            });
+            
+            services.AddAuthorization();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -59,9 +54,17 @@ namespace api
                 app.UseHsts();
             }
 
-            app.UseAuthentication();
+            app.UseRouting();
             app.UseCors();
-            app.UseMvc();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller}/{action=Index}/{id?}");
+            });
         }
     }
 }

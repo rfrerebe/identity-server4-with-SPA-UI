@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
 
 namespace IdentityServer.Controllers
 {
@@ -15,11 +16,11 @@ namespace IdentityServer.Controllers
     public class AuthenticateController : Controller
     {
         private readonly IIdentityServerInteractionService _interaction;
-        private readonly IHostingEnvironment _environment;
+        private readonly IWebHostEnvironment _environment;
 
         public AuthenticateController(
             IIdentityServerInteractionService interaction,
-            IHostingEnvironment environment)
+            IWebHostEnvironment environment)
         {
             _interaction = interaction;
             _environment = environment;

@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace api
 {
@@ -14,6 +9,8 @@ namespace api
     {
         public static void Main(string[] args)
         {
+            Console.Title = "API";
+
             CreateWebHostBuilder(args).Build().Run();
         }
 

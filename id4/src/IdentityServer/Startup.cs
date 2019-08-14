@@ -9,19 +9,21 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace IdentityServer
 {
     public class Startup
     {
-		public IConfiguration Configuration { get; }
-		public IHostingEnvironment Environment { get; }
+        public IConfiguration Configuration { get; }
+        public IWebHostEnvironment Environment { get; }
 
-        public Startup(IHostingEnvironment environment, IConfiguration configuration)
+        public Startup(IWebHostEnvironment environment, IConfiguration configuration)
         {
             Environment = environment;
-			Configuration = configuration;
-		}
+            Configuration = configuration;
+        }
 
         public void ConfigureServices(IServiceCollection services)
         {
@@ -33,14 +35,10 @@ namespace IdentityServer
                 {
                     policy.AllowAnyHeader();
                     policy.AllowAnyMethod();
-                    policy.WithOrigins("http://localhost:8082");
+                    policy.WithOrigins( new [] { "http://localhost:8082", "http://localhost:8080"} );
                     policy.AllowCredentials();
                 });
             });
-
-            services.AddMvcCore()
-                .SetCompatibilityVersion(Microsoft.AspNetCore.Mvc.CompatibilityVersion.Version_2_1)
-                .AddJsonFormatters();
 
             var builder = services.AddIdentityServer(options =>
             {
@@ -48,11 +46,11 @@ namespace IdentityServer
                 options.UserInteraction.ErrorUrl = "http://localhost:8082/error.html";
                 options.UserInteraction.LogoutUrl = "http://localhost:8082/logout.html";
 
-				if(!string.IsNullOrEmpty(Configuration["Issuer"]))
-				{
-					options.IssuerUri = Configuration["Issuer"];
-				}
-			})
+                if(!string.IsNullOrEmpty(Configuration["Issuer"]))
+                {
+                    options.IssuerUri = Configuration["Issuer"];
+                }
+            })
                 .AddInMemoryIdentityResources(Config.GetIdentityResources())
                 .AddInMemoryApiResources(Config.GetApis())
                 .AddInMemoryClients(Config.GetClients())
@@ -67,6 +65,8 @@ namespace IdentityServer
                 throw new Exception("need to configure key material");
             }
 
+            services.AddControllers();
+
             services.AddTransient<IReturnUrlParser, ReturnUrlParser>();
         }
 
@@ -79,13 +79,14 @@ namespace IdentityServer
 
             // uncomment if you want to support static files
             //app.UseStaticFiles();
-
-            app.UseIdentityServer();
-
+            app.UseRouting();
             app.UseCors();
 
-            // uncomment, if you want to add an MVC-based UI
-            app.UseMvc();
+            app.UseIdentityServer();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllerRoute("default", "{controller}/{action}/{id?}");
+            });
         }
     }
 }
